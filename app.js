@@ -2,16 +2,54 @@ const express = require('express');
 const request = require('request');
 const bodyParser = require('body-parser');
 const app = express();
-
-const url = 'https://api.bitfinex.com/v1/pubticker/btcusd';
+const axios = require('axios');
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
 
+// Let's start get data with request
+
+function getData () {
+    const url = 'https://api.bitfinex.com/v1/pubticker/btcusd';
+    request.get(url, function(error, response, data) {
+        if (error) {
+            console.log("error: " + error )
+        } else {
+            console.log(JSON.parse(data).last_price + " USD");
+        }
+    });
+}
+//getData();
+//setInterval(() => { getData(); }, 10000);
+
+
+// Let's start get data each with Axios in object, axios automatically parse JSON data
+
+let crypto = {
+    lastPrice: 0,
+    updateSec: 5000,
+    apiUrl: 'https://api.bitfinex.com/v1/pubticker/btc',
+    pullData: val => {
+        axios.get(crypto.apiUrl + val)
+            .then(response => {
+                crypto.lastPrice = response.data.last_price;
+                console.log(crypto.lastPrice);
+            })
+            .catch(error => {
+                console.log("error: " + error);
+            });
+    },
+    start: val => {
+        setInterval(() => {crypto.pullData(val);}, crypto.updateSec);
+    }
+};
+crypto.start("usd");
+
+
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
-  var err = new Error('Not Found');
+  let err = new Error('Not Found');
   err.status = 404;
   next(err);
 });
@@ -26,21 +64,6 @@ app.use(function(err, req, res) {
   res.status(err.status || 500);
   res.render('error');
 });
-
-// Function of getting data
-function getData () {
-    request.get(url, function(error, response, data) {
-        if (error) {
-            console.log("error: " + error )
-        } else {
-            console.log(JSON.parse(data).last_price + " USD");
-        }
-    });
-}
-
-// Let's start get data each 10s
-getData ();
-setInterval(function(){ getData(); }, 10000);
 
 
 module.exports = app;
