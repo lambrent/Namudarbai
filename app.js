@@ -30,18 +30,19 @@ let crypto = {
     lastPrice: 0,
     updateSec: 5000,
     apiUrl: 'https://api.bitfinex.com/v1/pubticker/btc',
-    pullData: val => {
-        axios.get(crypto.apiUrl + val)
+    pullData: function (val) {
+        axios.get(this.apiUrl + val)
             .then(response => {
-                crypto.lastPrice = response.data.last_price;
-                console.log(crypto.lastPrice);
+                this.lastPrice = response.data.last_price;
+                console.log(this.lastPrice);
             })
             .catch(error => {
                 console.log("error: " + error);
             });
     },
-    start: val => {
-        setInterval(() => {crypto.pullData(val);}, crypto.updateSec);
+    start: function (val){
+        this.pullData(val);
+        setInterval(() => {this.pullData(val);}, this.updateSec);
     }
 };
 crypto.start("usd");
